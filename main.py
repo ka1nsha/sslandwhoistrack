@@ -5,4 +5,7 @@ from modules.whoischeck import *
 #print(cert.return_json)
 wh = DomainQuery(domain='https://enesergun.net')
 
-print(wh.connect_whois_server)
+wh.connect_whois_server()
+
+whois_response = wh.connect_whois_server(whserver=wh.get_whois_server)
+print(whois_response)

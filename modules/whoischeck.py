@@ -1,6 +1,6 @@
 from tld import get_tld, get_fld
 from subprocess import Popen, PIPE
-import socket
+import socket,re
 import json
 
 class DomainQuery:
@@ -24,20 +24,36 @@ class DomainQuery:
 #            whois_server = json_file[key][0]
 #        return whois_server
     
-    @property
-    def connect_whois_server(self):
+    
+    def connect_whois_server(self, **kwargs):
         import socket
+        whoisserver = kwargs.get('whserver','whois.iana.org')
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(10)
-        sock.connect(('whois.iana.org',43))
+        sock.connect((whoisserver,43))
+        print(whoisserver)
         domain = self.fld.encode() + b"\r\n"
         sock.send(domain)
         resp = ""
         while True:
             s = sock.recv(4096)
             resp += s.decode()
-            
+
             if not s:
                 break
         sock.close()
-        return resp
+
+        self.resp = resp
+        return self.resp
+
+    @property
+    def get_whois_server(self):
+        what_query_server = self.resp.split(':')[2]
+
+        clear_whitespaces = what_query_server.replace('\t', '')
+        clear_whitespaces = clear_whitespaces.replace('domain', '')
+        clear_whitespaces = clear_whitespaces.replace(' ','')
+
+        return clear_whitespaces
+
