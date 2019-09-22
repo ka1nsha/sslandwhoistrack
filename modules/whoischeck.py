@@ -52,6 +52,6 @@ class DomainQuery:
         whois_server = None
         for i in self.resp.splitlines():
             if i.startswith('whois'):
-                whois_server = i
+                whois_server = i.split(':')[1].strip()
         return whois_server
 
