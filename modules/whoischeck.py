@@ -49,12 +49,9 @@ class DomainQuery:
 
     @property
     def get_whois_server(self):
-        what_query_server = self.resp.split(':')[2]
-
-        clear_whitespaces = what_query_server.replace('\t', '')
-        clear_whitespaces = clear_whitespaces.replace('domain', '')
-        clear_whitespaces = clear_whitespaces.replace(' ','')
-        clear_whitespaces = ''.join(clear_whitespaces.split())
-
-        return clear_whitespaces
+        whois_server = None
+        for i in self.resp.splitlines():
+            if i.startswith('whois'):
+                whois_server = i
+        return whois_server
 
