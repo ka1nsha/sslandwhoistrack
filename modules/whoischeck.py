@@ -54,6 +54,7 @@ class DomainQuery:
         clear_whitespaces = what_query_server.replace('\t', '')
         clear_whitespaces = clear_whitespaces.replace('domain', '')
         clear_whitespaces = clear_whitespaces.replace(' ','')
+        clear_whitespaces = ''.join(clear_whitespaces.split())
 
         return clear_whitespaces
 
