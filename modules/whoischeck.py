@@ -1,7 +1,5 @@
 from tld import get_tld, get_fld
-from subprocess import Popen, PIPE
-import socket,re
-import json
+from datetime import datetime
 
 class DomainQuery:
     def __init__(self,**kwargs) -> str:
@@ -15,30 +13,24 @@ class DomainQuery:
 
     def __repr__(self):
         return f"<{self.domain}> Domain TLDs: {self.tld}"
-    
-#    @property
-#    def choose_whois_server(self):
-#        with open('modules/serverlist.json') as fd:
-#            json_file = json.load(fd)
-#            key = f"{self.tld}"
-#            whois_server = json_file[key][0]
-#        return whois_server
-    
-    
+
     def connect_whois_server(self, **kwargs):
         import socket
-        whoisserver = kwargs.get('whserver','whois.iana.org')
+        self.whoisserver = kwargs.get('whserver','whois.iana.org')
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(10)
-        sock.connect((whoisserver,43))
-        print(whoisserver)
-        domain = self.fld.encode() + b"\r\n"
+        sock.connect((self.whoisserver,43))
+
+        domain = self.fld.encode('utf-8') + b"\r\n"
         sock.send(domain)
         resp = ""
         while True:
             s = sock.recv(4096)
-            resp += s.decode()
+            try:
+                resp += s.decode('utf-8')
+            except UnicodeDecodeError:
+                resp += s.decode('latin-1')
 
             if not s:
                 break
@@ -55,3 +47,17 @@ class DomainQuery:
                 whois_server = i.split(':')[1].strip()
         return whois_server
 
+    @property
+    def get_expire_date(self):
+        if self.whoisserver=='whois.nic.tr':
+            for i in self.resp.splitlines():
+                if i.startswith('Expires on'):
+                    expire_date = i.split(':')[1].strip()
+                    expire_date = expire_date.split('.')[0].strip()
+                    expire_date = datetime.strptime(expire_date,'%Y-%b-%d')
+                    now = datetime.today().date()
+                    whichday = expire_date - now
+                    return whichday.days()
+
+                else:
+                    pass
