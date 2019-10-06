@@ -1,0 +1,104 @@
+<html>
+<style type="text/css">
+@font-face {
+    font-family: 'Open Sans';
+    font-style: normal;
+    font-weight: 300;
+    src: local('Open Sans Light'), local('OpenSans-Light'), url(http://fonts.gstatic.com/s/opensans/v13/DXI1ORHCpsQm3Vp6mXoaTa-j2U0lmluP9RWlSytm3ho.woff2) format('woff2');
+    unicode-range: U+0460-052F, U+20B4, U+2DE0-2DFF, U+A640-A69F;
+    }
+.body {
+    width: 90%;
+    margin: auto;
+    font-family: 'Open Sans', 'Helvetica', sans-serif;
+    font-size: 14pt;
+    color: #075D72;
+    }
+a:link { color: #B40057; text-decoration: underline}
+a:visited { color: #542A95; text-decoration: none}
+a:hover { color: #B40057; background-color:#C4FFF9; text-decoration: underline }
+
+table {
+
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+.head {
+    margin-top: 30px;
+    background-color:#BF0A30;
+    color: #fff;
+    text-align: center;
+    width: 100%;
+    border: 1px solid #ddd;
+}
+    </style>
+<body>
+<div class="body">
+    <div class="head">SSL Sertifika Durumu</div>
+    <table>
+        <tr>
+          <th>Sertifika</th>
+          <th>Kalan Süre</th>
+
+        </tr>
+        {% for key,value in CERT_DAYS.items() %}
+        <tr>
+          <td>{{key}}</td>
+          <td>{{value}}</td>
+
+        </tr>
+        {% endfor %}
+      </table>
+    <div class="head">Domain Durumu</div>
+    <table>
+        <tr>
+          <th>Domain</th>
+          <th>Kalan Süre</th>
+          <th>Whois Server</th>
+
+        </tr>
+        {% for key,value in DOMAIN_DAYS.items() %}
+        <tr>
+          <td>{{key}}</td>
+          <td>{{value[0]}}</td>
+          <td>{{value[1]}}</td>
+
+        </tr>
+        {% endfor %}
+      </table>
+<div class="head">Sorgulanamayanlar</div>
+    <table>
+        <tr>
+          <th>Tip</th>
+          <th>Değer</th>
+
+        </tr>
+
+        {% for k,v in ERRORS.items() %}
+
+        <tr>
+
+          <td>{{ k }}</td>
+
+          <td>{{ v|join(' ') }}</td>
+
+        </tr>
+
+        {% endfor %}
+      </table>
+
+    </div>
+</body>
+</html>
+
