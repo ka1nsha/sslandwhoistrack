@@ -1,12 +1,15 @@
 from modules.sslcheck import *
 from modules.whoischeck import *
-import json
+import json, yaml
 import logging
 from logging import config
 
-with open("log_config.json", "r") as e:
+with open("config/log_config.json", "r") as e:
     cfg = json.load(e)
 config.dictConfig(cfg)
+
+with open('config/sites.yaml') as f:
+    data = yaml.load(f, Loader=yaml.FullLoader)
 
 def render_template(template, **kwargs) -> str:
     """
@@ -55,7 +58,8 @@ def send_email(to, cc=None, bcc=None, subject=None, body=None, To=None) -> None:
     try:
         server.login(gmail_user,gmail_pass)
         server.sendmail(gmail_user, ",".join(to), msg.as_string())
-        logging.info(f"Mailler {",".join(to)} kişilerine {subject} başlığı ile başarılı bir biçimde gönderilmiştir.")
+        to = ",".join(to)
+        logging.info(f"Mailler {to} kişilerine {subject} başlığı ile başarılı bir biçimde gönderilmiştir.")
 
     except Exception as e:
         logging.error(f"{__name__}: Mail gönderilirken hata meydana gelmiştir. Hata: {e}")
@@ -64,12 +68,11 @@ def send_email(to, cc=None, bcc=None, subject=None, body=None, To=None) -> None:
         server.quit()
 
 
-sites = ["https://www.enesergun.net", "http://fmvzswdlcnbthxkr.neverssl.com/online","https://twitter.com"]
 CERT_DAYS = {}
 DOMAIN_DAYS = {}
 ERRORS = {}
 
-for i in sites:
+for i in data[sites]:
     cert = CertInfo(hostname=i)
     try:
 

@@ -8,6 +8,8 @@ verify_ssl = true
 [packages]
 tld = "*"
 jinja2 = "*"
+yaml = "*"
+
 
 [requires]
 python_version = "3.6"
