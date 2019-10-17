@@ -21,4 +21,4 @@ Log dosyaları:
 
 Otomatik generate edilen dökümantasyona ulaşmak için /html klasörünü altında `index.html` dosyasını açabilirsiniz.
 
-
+**Not**: SSL ve Whois sorgusu sonucu eğer 30 günden daha az bir süre varsa mail içerisinde ilgili domain yer alacaktır. 
