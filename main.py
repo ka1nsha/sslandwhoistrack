@@ -3,12 +3,18 @@ from modules.whoischeck import *
 import json, yaml
 import logging
 from logging import config
+import os
 
-with open("config/log_config.json", "r") as e:
+current_dir = os.getcwd()
+logconfigfile = os.path.join(current_dir,'config/log_config.json')
+sitesconfigfile = os.path.join(current_dir,'config/sites.yml')
+
+with open(logconfigfile, "r") as e:
     cfg = json.load(e)
+
 config.dictConfig(cfg)
 
-with open('config/sites.yaml') as f:
+with open(sitesconfigfile) as f:
     data = yaml.load(f, Loader=yaml.FullLoader)
 
 def render_template(template, **kwargs) -> str:
@@ -72,7 +78,7 @@ CERT_DAYS = {}
 DOMAIN_DAYS = {}
 ERRORS = {}
 
-for i in data[sites]:
+for i in data['sites']:
     cert = CertInfo(hostname=i)
     try:
 
@@ -100,7 +106,7 @@ for i in data[sites]:
 
 logging.info("Sertifika kontrolleri tamamlanmış olup, domain kontrollerine geçilmektedir.")
 
-for i in sites:
+for i in data['sites']:
     try:
         wh = DomainQuery(domain=i)
         wh.connect_whois_server()
@@ -114,8 +120,7 @@ for i in sites:
         if expire_date < 30:
             DOMAIN_DAYS[i] = [expire_date, whserver]
 
-    except tld.exceptions.TldBadUrl as e:
-
+    except Exception as e:
         logging.warning(f"{__name__}: {i} sitesine whois sorgusu yapılırken hata meydana gelmiştir. Hata: {e}")
         ERRORS.setdefault("DOMAIN", []).append(i)
     except socket.timeout as e:

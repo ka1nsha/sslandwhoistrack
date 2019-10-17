@@ -1,4 +1,3 @@
-from tld import get_tld, get_fld
 from datetime import datetime
 import time
 
@@ -11,9 +10,12 @@ class DomainQuery:
         :return: str
         """
         self.domain = kwargs.get("domain")
-        self.tld = get_tld(self.domain, as_object=True)
-        self.fld = get_fld(self.domain, fix_protocol=True)
-
+        clear = self.domain.replace('wwww.', '')
+        clear = clear.replace('http://', '')
+        clear = clear.replace('https://', '')
+        self.tld = clear
+        fld = clear.split('.')
+        self.fld = f'{fld[-2]}.{fld[-1]}'
     def __str__(self) -> str:
         """
         Class direkt olarak yazdırılırsa defaultta ekrana ne bastıralacağını ayarlıyoruz.
@@ -42,7 +44,7 @@ class DomainQuery:
         sock.settimeout(10)
         sock.connect((self.whoisserver, 43))
 
-        domain = self.fld.encode("utf-8") + b"\r\n"
+        domain = self.tld.encode("utf-8") + b"\r\n"
         sock.send(domain)
         self.resp = ""
         while True:
@@ -77,6 +79,7 @@ class DomainQuery:
         :return: datetime
         """
         if self.whoisserver == "whois.nic.tr":
+
             for i in self.resp.splitlines():
                 if i.startswith("Expires on"):
                     expire_date = i.split(":")[1].strip()
@@ -84,6 +87,7 @@ class DomainQuery:
                     expire_date = datetime.strptime(expire_date, "%Y-%b-%d")
                     time.sleep(30)
                     return expire_date
+
 
         else:
             for i in self.resp.splitlines():
