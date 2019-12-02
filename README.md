@@ -22,3 +22,22 @@ Log dosyaları:
 Otomatik generate edilen dökümantasyona ulaşmak için /html klasörünü altında `index.html` dosyasını açabilirsiniz.
 
 **Not**: SSL ve Whois sorgusu sonucu eğer 30 günden daha az bir süre varsa mail içerisinde ilgili domain yer alacaktır. 
+
+
+# [EN] SSL and Whois Info Tracker
+This application doing raw query for calculate SSL and domain expiration dates in `config/sites.yml` sites. If that expiration date lower than 30 days, it send remaining day about of domain used e-mail. (You can look Email Settings.)
+
+Application use gmail of default settings, if you want change server or etc. you should edit `gmail_user` and `gmail_pass` variable in main.py. If you are don't use gmail (Might be local SMTP), be sure to delete `    context = ssl.create_default_context()` code in main.py
+
+
+
+You might take error on runtime. If you take any error you should look at log files therefore for debugging or other information about process time . It's has got 3 different log file.
+
+This log files:
+
+* log_error.log
+* log_warning.log
+* log_info.log
+
+**Note**: Documentation pages written Turkish Language. Cause of i don't know enough English for that. I'm sorry.
+
