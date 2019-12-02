@@ -1,5 +1,6 @@
 import socket, ssl, datetime
 import json, tld
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 class CertInfo:

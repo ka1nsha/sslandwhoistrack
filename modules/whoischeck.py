@@ -1,6 +1,6 @@
+from tld import get_tld, get_fld
 from datetime import datetime
 import time
-
 
 class DomainQuery:
     def __init__(self, **kwargs) -> str:
@@ -10,12 +10,17 @@ class DomainQuery:
         :return: str
         """
         self.domain = kwargs.get("domain")
-        clear = self.domain.replace('wwww.', '')
-        clear = clear.replace('http://', '')
-        clear = clear.replace('https://', '')
-        self.tld = clear
-        fld = clear.split('.')
-        self.fld = f'{fld[-2]}.{fld[-1]}'
+        try:
+            self.tld = get_tld(self.domain, as_object=True)
+            self.fld = get_fld(self.domain, fix_protocol=True)
+        except:
+            clear = self.domain.replace('wwww.','')
+            clear = clear.replace('http://','')
+            clear = clear.replace('https://','')
+            self.tld = clear
+            fld = clear.split('.')
+            self.fld = f'{fld[-2]}.{fld[-1]}'
+
     def __str__(self) -> str:
         """
         Class direkt olarak yazdırılırsa defaultta ekrana ne bastıralacağını ayarlıyoruz.
@@ -38,8 +43,9 @@ class DomainQuery:
         :return: str
         """
         import socket
-        self.whoisserver = kwargs.get("whserver", "whois.iana.org")
-
+        self.whoisserver = kwargs.get("whserver")
+        if self.whoisserver == None:
+            self.whoisserver = "whois.iana.org"
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(10)
         sock.connect((self.whoisserver, 43))
@@ -48,8 +54,10 @@ class DomainQuery:
         sock.send(domain)
         self.resp = ""
         while True:
-            s = sock.recv(4096)
-
+            try:
+                s = sock.recv(4096)
+            except ConnectionResetError as e:
+                pass
             try:
                 self.resp += s.decode("utf-8")
             except UnicodeDecodeError:
@@ -64,7 +72,7 @@ class DomainQuery:
     @property
     def get_whois_server(self) -> str:
         """
-        Whois server response"u içerisinde, whois server geçen stringi parse ediyoruz.
+        Whois server response'u içerisinde, whois server geçen stringi parse ediyoruz.
         :return: str
         """
         for i in self.resp.splitlines():
@@ -79,15 +87,13 @@ class DomainQuery:
         :return: datetime
         """
         if self.whoisserver == "whois.nic.tr":
-
             for i in self.resp.splitlines():
-                if i.startswith("Expires on"):
+                if i.startswith("Expires on.."):
                     expire_date = i.split(":")[1].strip()
                     expire_date = expire_date.split(".")[0].strip()
                     expire_date = datetime.strptime(expire_date, "%Y-%b-%d")
-                    time.sleep(30)
+                    time.sleep(120)
                     return expire_date
-
 
         else:
             for i in self.resp.splitlines():
@@ -104,5 +110,8 @@ class DomainQuery:
         :return: int
         """
         now = datetime.now().date()
-        whichday = datetime.date(timeobj) - now
-        return whichday.days
+        try:
+            whichday = datetime.date(timeobj) - now
+            return whichday.days
+        except:
+            return None
