@@ -31,7 +31,7 @@ Application use gmail of default settings, if you want change server or etc. you
 
 
 
-You might take error on runtime. If you take any error you should look at log files therefore for debugging or other information about process time . It's has got 3 different log file.
+You might take error on runtime. If you take any error you should look at log files  for debugging or other information about process time . It's has got 3 different log files.
 
 This log files:
 
@@ -40,4 +40,4 @@ This log files:
 * log_info.log
 
 **Note**: Documentation pages written Turkish Language. Cause of i don't know enough English for that. I'm sorry.
-
+**Note2**: If expiration date higher than 30 days, you couldn't see domain in mail. 
