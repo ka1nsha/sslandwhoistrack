@@ -25,19 +25,19 @@ Otomatik generate edilen dökümantasyona ulaşmak için /html klasörünü alt�
 
 
 # [EN] SSL and Whois Info Tracker
-This application doing raw query for calculate SSL and domain expiration dates in `config/sites.yml` sites. If that expiration date lower than 30 days, it send remaining day about of domain used e-mail. (You can look Email Settings.)
+This application does raw query for calculating SSL and domain expiration dates in `config/sites.yml` sites. If that expiration date is lower than 30 days, it sends remaining day about of domain used e-mail. (You can look Email Settings.)
 
-Application use gmail of default settings, if you want change server or etc. you should edit `gmail_user` and `gmail_pass` variable in main.py. If you are don't use gmail (Might be local SMTP), be sure to delete `    context = ssl.create_default_context()` code in main.py
+Application uses gmail for default settings, if you want change server or etc. you should edit `gmail_user` and `gmail_pass` variables in main.py. If you don't use gmail (Might be local SMTP), be sure to delete `    context = ssl.create_default_context()` code in main.py
 
 
 
-You might take error on runtime. If you take any error you should look at log files  for debugging or other information about process time . It's has got 3 different log files.
+You might take error on runtime. If you take any error you should look at log files for debugging or other information about process time. It has 3 different log files.
 
-This log files:
+These log files:
 
 * log_error.log
 * log_warning.log
 * log_info.log
 
-**Note**: Documentation pages written Turkish Language. Cause of i don't know enough English for that. I'm sorry.
+**Note**: Documentation pages are written in Turkish Language. Cause of i don't know enough English for that. I'm sorry.
 **Note2**: If expiration date higher than 30 days, you couldn't see domain in mail. 
