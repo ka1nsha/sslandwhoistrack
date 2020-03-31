@@ -15,7 +15,7 @@ with open(logconfigfile, "r") as e:
 config.dictConfig(cfg)
 
 # Config of Websites(SSL and Whois Both)
-sitesconfigfile = path.join(current_dir,'config/sites1.yml')
+sitesconfigfile = path.join(current_dir,'config/sites.yml')
 
 with open(sitesconfigfile) as f:
     data = yaml.load(f, Loader=yaml.FullLoader)
@@ -52,8 +52,8 @@ def send_email(to, cc=None, bcc=None, subject=None, body=None, To=None) -> None:
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
 
-    gmail_user = "sender"
-    gmail_pass = "password"
+    gmail_user = ""
+    gmail_pass = ""
 
     msg = MIMEMultipart("alternative")
     msg["From"] = gmail_user
@@ -62,8 +62,10 @@ def send_email(to, cc=None, bcc=None, subject=None, body=None, To=None) -> None:
     # msg["Cc"] = cc
     # msg["Bcc"] = bcc
     msg.attach(MIMEText(body, "html"))
-    context = ssl.create_default_context()
-    server = smtplib.SMTP("smtp.gmail.com")
+    #context = ssl.create_default_context()
+    server = smtplib.SMTP("smtp.gmail.com",587)
+    server.ehlo()
+    server.starttls()
 
     try:
         server.login(gmail_user,gmail_pass)
@@ -108,14 +110,15 @@ def checkWebSite(url):
 
 def checkCertificate(cert):
     certs = CertInfo(hostname=cert)
-    try:
 
+    try:
         certs.connect()
         logging.info(
             f"{cert} Sitesinin SSL Süresinin Bitmesine {certs.time_remaining} gün vardır. SSL Süresi {certs.expire_date} tarihinde sonlanacaktır.")
-
+        print(certs.time_remaining, deltavalue)
         if certs.time_remaining < deltavalue:
             CERT_DAYS[cert] = f"{certs.time_remaining} Gün"
+
 
     except AttributeError as e:
         message = f"{__name__}: {cert} Sitesinin SSL Sorgulamasında hata meydana gelmiştir. <Hata>:{e}"
@@ -175,14 +178,14 @@ for option in options:
                     checkCertificate(obj)
         except KeyError as e:
             pass
-    logging.info("Kontroller tamamlanmış olup, E-Mail atılacaktır.")
+        logging.info("Kontroller tamamlanmış olup, E-Mail atılacaktır.")
 
-    html = render_template("mail.j2", CERT_DAYS=CERT_DAYS, DOMAIN_DAYS=DOMAIN_DAYS, ERRORS=ERRORS)
+        html = render_template("mail.j2", CERT_DAYS=CERT_DAYS, DOMAIN_DAYS=DOMAIN_DAYS, ERRORS=ERRORS)
 
-    to_list = customers[customer]['mails']
-    subj = "Domain Kayıtları"
-    send_email(to_list, subject=subj, body=html)
-    logging.info(f"Tüm işlemler tamamlandı. Rapor çıktısı {to_list} ile paylaşıldı.")
+        to_list = customers[customer]['mails']
+        subj = "Domain Kayıtları"
+        send_email(to_list, subject=subj, body=html)
+        logging.info(f"Tüm işlemler tamamlandı. Rapor çıktısı {to_list} ile paylaşıldı.")
 
 
 
