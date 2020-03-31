@@ -1,4 +1,3 @@
-from tld import get_tld, get_fld
 from datetime import datetime
 import time
 
@@ -10,16 +9,13 @@ class DomainQuery:
         :return: str
         """
         self.domain = kwargs.get("domain")
-        try:
-            self.tld = get_tld(self.domain, as_object=True)
-            self.fld = get_fld(self.domain, fix_protocol=True)
-        except:
-            clear = self.domain.replace('wwww.','')
-            clear = clear.replace('http://','')
-            clear = clear.replace('https://','')
-            self.tld = clear
-            fld = clear.split('.')
-            self.fld = f'{fld[-2]}.{fld[-1]}'
+
+        clear = self.domain.replace('wwww.','')
+        clear = clear.replace('http://','')
+        clear = clear.replace('https://','')
+        self.tld = clear
+        fld = clear.split('.')
+        self.fld = f'{fld[-2]}.{fld[-1]}'
 
     def __str__(self) -> str:
         """
@@ -92,7 +88,7 @@ class DomainQuery:
                     expire_date = i.split(":")[1].strip()
                     expire_date = expire_date.split(".")[0].strip()
                     expire_date = datetime.strptime(expire_date, "%Y-%b-%d")
-                    time.sleep(120)
+                    time.sleep(10)
                     return expire_date
 
         else:

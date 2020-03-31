@@ -1,23 +1,26 @@
-from modules.sslcheck import *
-from modules.whoischeck import *
 import json, yaml
 import logging
+from sys import argv
 from logging import config
-import os
+from os import path
+from utils.whoischeck import *
+from utils.sslcheck import *
 
-
-current_dir = os.path.dirname(os.path.realpath(__file__))
-logconfigfile = os.path.join(current_dir,'config/log_config.json')
+# Logging Configuration Section
+current_dir = path.dirname(path.realpath(__file__))
+logconfigfile = path.join(current_dir,'config/log_config.json')
 
 with open(logconfigfile, "r") as e:
     cfg = json.load(e)
 config.dictConfig(cfg)
 
-sitesconfigfile = os.path.join(current_dir,'config/sites.yml')
+# Config of Websites(SSL and Whois Both)
+sitesconfigfile = path.join(current_dir,'config/sites1.yml')
 
 with open(sitesconfigfile) as f:
     data = yaml.load(f, Loader=yaml.FullLoader)
 
+# Mail Schema Function
 def render_template(template, **kwargs) -> str:
     """
     Parametre olarak verilmiş olan j2 uzantılı dosya içerisinde **kwargs içerisinde verilmiş tüm değişkenleri arayarak bu değişkenleri render eder ve html olarak geri döner.
@@ -33,7 +36,7 @@ def render_template(template, **kwargs) -> str:
     templ = templateEnv.get_template(template)
 
     return templ.render(**kwargs)
-
+# Mail Function
 def send_email(to, cc=None, bcc=None, subject=None, body=None, To=None) -> None:
     """
     HTML olarak email gönderen fonksiyondur. Fonksiyon içerisinde mail konfigürasyonları yapılması gerekmektedir.
@@ -74,69 +77,114 @@ def send_email(to, cc=None, bcc=None, subject=None, body=None, To=None) -> None:
     finally:
         server.quit()
 
-
-CERT_DAYS = {}
-DOMAIN_DAYS = {}
-ERRORS = {}
-
-for i in data['sites']:
-    cert = CertInfo(hostname=i)
+# Functions
+def checkWebSite(url):
     try:
-
-        cert.connect()
-        logging.info(
-            f"{i} Sitesinin SSL Süresinin Bitmesine {cert.time_remaining} gün vardır. SSL Süresi {cert.expire_date} tarihinde sonlanacaktır.")
-
-        if cert.time_remaining < 30:
-            CERT_DAYS[i] = f"{cert.time_remaining} Gün"
-
-    except AttributeError as e:
-        message = f"{__name__}: {i} Sitesinin SSL Sorgulamasında hata meydana gelmiştir. <Hata>:{e}"
-        ERRORS.setdefault("SSL", []).append(i)
-        logging.warning(message)
-
-    except socket.gaierror as e:
-        message = f"{__name__}: {i} Sitesinin SSL Sorgulamasında hata meydana gelmiştir. <Hata>:{e}"
-        ERRORS.setdefault("SSL", []).append(i)
-        logging.warning(message)
-
-    except Exception as e:
-        message = f"{__name__}: {i} Sitesinin SSL Sorgulamasında hata meydana gelmiştir. <Hata>:{e}"
-        ERRORS.setdefault("SSL", []).append(i)
-        logging.warning(message)
-
-logging.info("Sertifika kontrolleri tamamlanmış olup, domain kontrollerine geçilmektedir.")
-for i in data['sites']:
-    try:
-        wh = DomainQuery(domain=i)
+        wh = DomainQuery(domain=url)
         wh.connect_whois_server()
         whserver = wh.get_whois_server
         whois_response = wh.connect_whois_server(whserver=whserver)
         expire_date = wh.expire_calculate(wh.get_expire_date)
+
         if expire_date == None:
-            logging.error(f"{i} domaininin kullanım tarihi çekilememiştir.")
-            ERRORS.setdefault("DOMAIN", []).append(i)
+            logging.error(f"{url} domaininin kullanım tarihi çekilememiştir.")
+            ERRORS.setdefault("DOMAIN", []).append(url)
 
         else:
             logging.info(
-                f"{i} domainin son kullanım tarihi {wh.get_expire_date} olup, dolmasına {expire_date} gün kalmıştır.")
+                f"{url} domainin son kullanım tarihi {wh.get_expire_date} olup, dolmasına {expire_date} gün kalmıştır."
+            )
 
-            if expire_date < 30:
-                DOMAIN_DAYS[i] = [expire_date, whserver]
+            if expire_date < deltavalue:
+                DOMAIN_DAYS[url] = [expire_date, whserver]
 
-    except tld.exceptions.TldBadUrl as e:
-
-        logging.warning(f"{__name__}: {i} sitesine whois sorgusu yapılırken hata meydana gelmiştir. Hata: {e}")
-        ERRORS.setdefault("DOMAIN", []).append(i)
+    except Exception as e:
+        logging.error(
+            f"{__name__}:Tanımlanmayan hata. Hata:- {e} -"
+        )
     except socket.timeout as e:
-        logging.error(f"{__name__}: {i} sitesine whois sorgusu yapılırken kritik bir hata meydana gelmiştir. Hata: {e}")
-        ERRORS.setdefault("DOMAIN", []).append(i)
+        logging.error(f"{__name__}: {url} sitesine whois sorgusu yapılırken kritik bir hata meydana gelmiştir. Hata: {e}")
+        ERRORS.setdefault("DOMAIN", []).append(url)
 
-logging.info("Domain kontrolleri tamamlanmış olup, E-Mail atılacaktır.")
+def checkCertificate(cert):
+    certs = CertInfo(hostname=cert)
+    try:
 
-html = render_template("mail.j2", CERT_DAYS=CERT_DAYS, DOMAIN_DAYS=DOMAIN_DAYS,ERRORS=ERRORS)
+        certs.connect()
+        logging.info(
+            f"{cert} Sitesinin SSL Süresinin Bitmesine {certs.time_remaining} gün vardır. SSL Süresi {certs.expire_date} tarihinde sonlanacaktır.")
 
-to_list = ["info@enesergun.net","foo@bar.com"]
-subj = "Domain Kayıtları"
-send_email(to_list,subject=subj,body=html)
-logging.info(f"Tüm işlemler tamamlandı. Rapor çıktısı {to_list} ile paylaşıldı.")
+        if certs.time_remaining < deltavalue:
+            CERT_DAYS[cert] = f"{certs.time_remaining} Gün"
+
+    except AttributeError as e:
+        message = f"{__name__}: {cert} Sitesinin SSL Sorgulamasında hata meydana gelmiştir. <Hata>:{e}"
+        ERRORS.setdefault("SSL", []).append(cert)
+        logging.warning(message)
+
+    except socket.gaierror as e:
+        message = f"{__name__}: {cert} Sitesinin SSL Sorgulamasında hata meydana gelmiştir. <Hata>:{e}"
+        ERRORS.setdefault("SSL", []).append(cert)
+        logging.warning(message)
+
+    except Exception as e:
+        message = f"{__name__}: {cert} Throwing Exception when SSL Certificate Checks. <Error>:{e}"
+        ERRORS.setdefault("SSL", []).append(cert)
+        logging.warning(message)
+
+# SysArgv Configuration
+options = []
+argv = argv[1:]
+
+# Conditions for getting timedelta value in arguments
+if '-t' in argv:
+    getindex = argv.index('-t')
+
+    try:
+        optionargument = argv[getindex + 1]
+        deltavalue = int(optionargument)
+    except IndexError as e:
+        logging.warning(f"Argument Error in timedelta argument. Used Arguments:{argv}")
+        print("Should be type timedelta values if you typed -t parameter")
+
+if '-d' in argv:
+    options.append('websites')
+if '-c' in argv:
+    options.append('certificates')
+
+logging.info(f"Argument parsing succesfully done. Argument list:{argv}")
+
+# Function Call with Options
+## Global Variables for Reporting
+
+
+## Main Process
+for option in options:
+    customers = data['customers']
+    for customer in customers:
+
+        CERT_DAYS = {}
+        DOMAIN_DAYS = {}
+        ERRORS = {}
+        try:
+            objects = customers[customer][option]
+            for obj in objects:
+                if option == 'websites':
+                    checkWebSite(obj)
+                if option == 'certificates':
+                    checkCertificate(obj)
+        except KeyError as e:
+            pass
+    logging.info("Kontroller tamamlanmış olup, E-Mail atılacaktır.")
+
+    html = render_template("mail.j2", CERT_DAYS=CERT_DAYS, DOMAIN_DAYS=DOMAIN_DAYS, ERRORS=ERRORS)
+
+    to_list = customers[customer]['mails']
+    subj = "Domain Kayıtları"
+    send_email(to_list, subject=subj, body=html)
+    logging.info(f"Tüm işlemler tamamlandı. Rapor çıktısı {to_list} ile paylaşıldı.")
+
+
+
+
+

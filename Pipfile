@@ -6,10 +6,8 @@ verify_ssl = false
 [dev-packages]
 
 [packages]
-tld = "*"
-jinja2 = "*"
+Jinja2 = "*"
 yaml = "*"
-was = "*"
 
 [requires]
 python_version = "3.6"

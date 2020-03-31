@@ -59,3 +59,5 @@ class CertInfo:
         :return: json
         """
         return json.dumps(self.cert_info)
+
+

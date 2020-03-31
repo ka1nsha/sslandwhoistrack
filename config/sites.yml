@@ -1,4 +1,14 @@
-sites:
-- enesergun.net
-- twitter.com
-- kocsistem.com.tr
+customers:
+  enes1:
+    websites:
+      - google.com
+      - google.de
+    certificates:
+      - google.com
+    mails:
+      - r4wn3ss@gmail.com
+  enes:
+    websites:
+      - enesergun.net
+    mails:
+      - r4wn3ss@gmail.com
